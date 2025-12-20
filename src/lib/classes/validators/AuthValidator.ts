@@ -1,35 +1,72 @@
-import validator from 'validator';
-import { ValidationError } from '../errors/ApiError';
+// src/lib/classes/validators/AuthValidator.ts
+import validator from 'validator'
+import { ApiError } from '../errors/ApiError'
 
 export class AuthValidator {
-  static validateEmail(email: string): void {
-    if (!email || !validator.isEmail(email)) {
-      throw new ValidationError('Valid email is required');
+  async validateRegister(data: {
+    email: string
+    password: string
+    name?: string
+    company?: string
+    phone?: string
+  }): Promise<void> {
+    const errors: string[] = []
+
+    // Email validation
+    if (!data.email || !validator.isEmail(data.email)) {
+      errors.push('Valid email is required')
+    }
+
+    // Password validation
+    if (!data.password || data.password.length < 8) {
+      errors.push('Password must be at least 8 characters long')
+    }
+
+    if (!data.password.match(/[A-Z]/)) {
+      errors.push('Password must contain at least one uppercase letter')
+    }
+
+    if (!data.password.match(/[a-z]/)) {
+      errors.push('Password must contain at least one lowercase letter')
+    }
+
+    if (!data.password.match(/[0-9]/)) {
+      errors.push('Password must contain at least one number')
+    }
+
+    // Name validation (optional)
+    if (data.name && data.name.length > 100) {
+      errors.push('Name cannot exceed 100 characters')
+    }
+
+    // Company validation (optional)
+    if (data.company && data.company.length > 200) {
+      errors.push('Company name cannot exceed 200 characters')
+    }
+
+    // Phone validation (optional)
+    if (data.phone && !validator.isMobilePhone(data.phone)) {
+      errors.push('Invalid phone number format')
+    }
+
+    if (errors.length > 0) {
+      throw new ApiError(errors.join(', '), 400)
     }
   }
 
-  static validatePassword(password: string): void {
-    if (!password || password.length < 6) {
-      throw new ValidationError('Password must be at least 6 characters');
+  async validateLogin(data: { email: string; password: string }): Promise<void> {
+    const errors: string[] = []
+
+    if (!data.email || !validator.isEmail(data.email)) {
+      errors.push('Valid email is required')
     }
-  }
 
-  static validateName(name: string): void {
-    if (name && name.length > 100) {
-      throw new ValidationError('Name must be less than 100 characters');
-    }
-  }
-
-  static validateRegisterInput(data: { email: string; password: string; name?: string }): void {
-    this.validateEmail(data.email);
-    this.validatePassword(data.password);
-    if (data.name) this.validateName(data.name);
-  }
-
-  static validateLoginInput(data: { email: string; password: string }): void {
-    this.validateEmail(data.email);
     if (!data.password) {
-      throw new ValidationError('Password is required');
+      errors.push('Password is required')
+    }
+
+    if (errors.length > 0) {
+      throw new ApiError(errors.join(', '), 400)
     }
   }
 }

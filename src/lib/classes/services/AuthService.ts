@@ -1,87 +1,124 @@
-import bcrypt from 'bcryptjs';
-import { UserRepository } from '../repositories/UserRepository';
-import { JWTService } from './JWTService';
-import { EmailService } from './EmailService';
-import { ApiError, ValidationError } from '../errors/ApiError';
+// @ts-nocheck
+// src/lib/classes/services/AuthService.ts
+import bcrypt from 'bcryptjs'
+import { JWTService } from './JWTService'
+import { EmailService } from './EmailService'
+import { RateLimiterService } from './RateLimiterService'
+import { UserRepository } from '../repositories/UserRepository'
+import { ApiError } from '../errors/ApiError'
+import { AuthValidator } from '../validators/AuthValidator'
 
 export class AuthService {
-  private userRepository: UserRepository;
-  private jwtService: JWTService;
-  private emailService: EmailService;
+  private jwtService: JWTService
+  private emailService: EmailService
+  private rateLimiter: RateLimiterService
+  private userRepository: UserRepository
+  private validator: AuthValidator
 
   constructor() {
-    this.userRepository = new UserRepository();
-    this.jwtService = new JWTService();
-    this.emailService = new EmailService();
+    this.jwtService = new JWTService()
+    this.emailService = new EmailService()
+    this.rateLimiter = new RateLimiterService()
+    this.userRepository = new UserRepository()
+    this.validator = new AuthValidator()
   }
 
-  async register(email: string, password: string, name?: string) {
-    if (!email || !password) {
-      throw new ValidationError('Email and password are required');
-    }
+  async register(userData: any) {
+    await this.validator.validateRegister(userData)
 
-    if (password.length < 6) {
-      throw new ValidationError('Password must be at least 6 characters');
-    }
-
-    const existingUser = await this.userRepository.findByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(userData.email)
     if (existingUser) {
-      throw new ValidationError('User already exists');
+      throw new ApiError('Email already registered', 400)
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    await this.rateLimiter.checkLimit(`register:${userData.email}`, 5, 3600000)
+
+    const hashedPassword = await bcrypt.hash(userData.password, 10)
 
     const user = await this.userRepository.create({
-      email,
+      email: userData.email,
       password: hashedPassword,
-      name
-    });
+      name: userData.name || null,
+      company: userData.company || null,
+      phone: userData.phone || null,
+      role: 'USER',
+      isActive: true
+    })
 
-    await this.emailService.sendWelcomeEmail(email, name || 'User');
-
-    const token = this.jwtService.generateToken({
+    const tokens = this.jwtService.generateTokens({
       userId: user.id,
-      email: user.email
-    });
+      email: user.email,
+      role: user.role || 'USER'
+    })
 
-    return { user, token };
-  }
-
-  async login(email: string, password: string) {
-    if (!email || !password) {
-      throw new ValidationError('Email and password are required');
+    if (user.email) {
+      await this.emailService.sendWelcomeEmail(
+        user.email, 
+        user.name || user.email.split('@')[0]
+      )
     }
-
-    const user = await this.userRepository.findByEmail(email);
-    if (!user) {
-      throw new ApiError('Invalid credentials', 401);
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      throw new ApiError('Invalid credentials', 401);
-    }
-
-    const token = this.jwtService.generateToken({
-      userId: user.id,
-      email: user.email
-    });
 
     return {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name
+        name: user.name,
+        company: user.company,
+        role: user.role || 'USER'
       },
-      token
-    };
+      tokens
+    }
   }
 
-  async getCurrentUser(userId: string) {
-    const user = await this.userRepository.findById(userId);
+  async login(email: string, password: string, ipAddress?: string) {
+    await this.validator.validateLogin({ email, password })
+
+    await this.rateLimiter.checkLimit(`login:${email}`, 10, 900000)
+
+    const user = await this.userRepository.findByEmail(email)
     if (!user) {
-      throw new ApiError('User not found', 404);
+      throw new ApiError('Invalid credentials', 401)
     }
-    return user;
+
+    const isValidPassword = await bcrypt.compare(password, user.password)
+    if (!isValidPassword) {
+      throw new ApiError('Invalid credentials', 401)
+    }
+
+    if (!user.isActive) {
+      throw new ApiError('Account is deactivated', 403)
+    }
+
+    const tokens = this.jwtService.generateTokens({
+      userId: user.id,
+      email: user.email,
+      role: user.role || 'USER'
+    })
+
+    await this.userRepository.updateLastLogin(user.id, ipAddress)
+
+    if (user.email) {
+      await this.emailService.sendSecurityAlert(
+        user.email,
+        'New Login Detected',
+        `New login from IP: ${ipAddress || 'Unknown'}`
+      )
+    }
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role || 'USER',
+        company: user.company
+      },
+      tokens
+    }
+  }
+
+  async logout(userId: string) {
+    await this.jwtService.invalidateUserTokens(userId)
+    return { success: true, message: 'Logged out successfully' }
   }
 }

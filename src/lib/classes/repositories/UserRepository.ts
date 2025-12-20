@@ -1,47 +1,36 @@
-import { BaseRepository } from './BaseRepository';
+// src/lib/classes/repositories/UserRepository.ts
+import { BaseRepository } from './BaseRepository'
+import { User } from '@prisma/client'
 
-export class UserRepository extends BaseRepository {
+export class UserRepository extends BaseRepository<User> {
   constructor() {
-    super();
+    super('user')
   }
 
-  async findByEmail(email: string): Promise<any> {
-    // Use the execute method from BaseRepository
-    return this.execute(async () => {
-      // Mock implementation - replace with actual database call
-      // Example: return await this.prisma.user.findUnique({ where: { email } });
-      return null; // Returns null for now
-    });
+  async findByEmail(email: string): Promise<User | null> {
+    return this.findFirst({
+      where: { email }
+    })
   }
 
-  async findById(id: string): Promise<any> {
-    return this.execute(async () => {
-      // Mock implementation
-      return { 
-        id, 
-        email: 'user@example.com', 
-        name: 'Demo User',
-        password: '$2a$10$hashedpassword' // Mock hashed password
-      };
-    });
+  async findByResetToken(token: string): Promise<User | null> {
+    return this.findFirst({
+      where: { resetToken: token }
+    })
   }
 
-  async create(data: any): Promise<any> {
-    return this.execute(async () => {
-      // Mock implementation
-      return { 
-        id: 'user_' + Date.now(),
-        ...data,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-    });
+  async updatePassword(id: string, hashedPassword: string): Promise<User> {
+    return this.update(id, {
+      password: hashedPassword,
+      resetToken: null,
+      resetTokenExpiry: null
+    } as any)
   }
 
-  async update(id: string, data: any): Promise<any> {
-    return this.execute(async () => {
-      // Mock implementation
-      return { id, ...data, updatedAt: new Date() };
-    });
+  async updateLastLogin(id: string, ipAddress?: string): Promise<User> {
+    return this.update(id, {
+      lastLoginAt: new Date(),
+      lastLoginIp: ipAddress || null
+    } as any)
   }
 }

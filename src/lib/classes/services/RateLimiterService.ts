@@ -1,87 +1,63 @@
-export interface RateLimitResult {
-  limited: boolean;
-  limit: number;
-  remaining: number;
-  reset: number;
+// src/lib/classes/services/RateLimiterService.ts - SIMPLE COMPLETE VERSION
+import { ApiError } from '../errors/ApiError'
+
+interface RateLimitRecord {
+  count: number
+  resetTime: number
 }
 
 export class RateLimiterService {
-  private limits = new Map<string, { count: number; resetTime: number }>();
-  private windowMs = 15 * 60 * 1000; // 15 minutes
-  private maxRequests = 100; // 100 requests per window
+  private limits: Map<string, RateLimitRecord> = new Map()
 
-  isRateLimited(key: string): RateLimitResult {
-    const now = Date.now();
-    const limitData = this.limits.get(key);
+  async checkLimit(key: string, maxRequests: number, windowMs: number): Promise<void> {
+    const now = Date.now()
+    const record = this.limits.get(key)
 
-    if (!limitData) {
-      // First request
+    if (!record || now > record.resetTime) {
       this.limits.set(key, {
         count: 1,
-        resetTime: now + this.windowMs
-      });
-      return {
-        limited: false,
-        limit: this.maxRequests,
-        remaining: this.maxRequests - 1,
-        reset: now + this.windowMs
-      };
+        resetTime: now + windowMs
+      })
+    } else {
+      record.count++
+      
+      if (record.count > maxRequests) {
+        const retryAfter = Math.ceil((record.resetTime - now) / 1000)
+        throw new ApiError(`Rate limit exceeded. Try again in ${retryAfter} seconds`, 429)
+      }
     }
-
-    // Check if window has expired
-    if (now > limitData.resetTime) {
-      // Reset counter
-      this.limits.set(key, {
-        count: 1,
-        resetTime: now + this.windowMs
-      });
-      return {
-        limited: false,
-        limit: this.maxRequests,
-        remaining: this.maxRequests - 1,
-        reset: now + this.windowMs
-      };
-    }
-
-    // Check if limit exceeded
-    if (limitData.count >= this.maxRequests) {
-      return {
-        limited: true,
-        limit: this.maxRequests,
-        remaining: 0,
-        reset: limitData.resetTime
-      };
-    }
-
-    // Increment counter
-    limitData.count++;
-    this.limits.set(key, limitData);
-
-    return {
-      limited: false,
-      limit: this.maxRequests,
-      remaining: this.maxRequests - limitData.count,
-      reset: limitData.resetTime
-    };
   }
 
   getHeaders(key: string): Record<string, string> {
-    const result = this.isRateLimited(key);
+    const now = Date.now()
+    const record = this.limits.get(key)
+    
+    const remaining = record ? Math.max(0, 100 - record.count) : 100
+    const reset = record ? Math.floor(record.resetTime / 1000) : Math.floor((now + 900000) / 1000)
     
     return {
-      'X-RateLimit-Limit': result.limit.toString(),
-      'X-RateLimit-Remaining': result.remaining.toString(),
-      'X-RateLimit-Reset': Math.ceil(result.reset / 1000).toString(), // Unix timestamp
-    };
+      'X-RateLimit-Limit': '100',
+      'X-RateLimit-Remaining': remaining.toString(),
+      'X-RateLimit-Reset': reset.toString()
+    }
   }
 
-  // Clear expired entries (optional cleanup method)
-  cleanup(): void {
-    const now = Date.now();
-    for (const [key, data] of this.limits.entries()) {
-      if (now > data.resetTime) {
-        this.limits.delete(key);
-      }
+  isRateLimited(key: string): { limited: boolean; retryAfter?: number } {
+    const now = Date.now()
+    const record = this.limits.get(key)
+
+    if (!record) {
+      return { limited: false }
+    }
+
+    if (now > record.resetTime) {
+      this.limits.delete(key)
+      return { limited: false }
+    }
+
+    return {
+      limited: true,
+      retryAfter: Math.ceil((record.resetTime - now) / 1000)
     }
   }
 }

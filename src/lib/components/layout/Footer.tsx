@@ -1,48 +1,85 @@
+import { Shield } from 'lucide-react';
+import Link from 'next/link';
+
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-12">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-6 md:mb-0">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-blue-500"></div>
-              <span className="text-xl font-bold">ApniSec</span>
+    <footer className="bg-gray-900 border-t border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Brand Column */}
+          <div>
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="p-2 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
+                  ApniSec
+                </span>
+                <p className="text-sm text-gray-400">SECURITY as a Service</p>
+              </div>
             </div>
-            <p className="text-gray-400">Enterprise Cybersecurity Solutions</p>
+            <p className="text-gray-400 text-sm mb-4">
+              Enterprise cybersecurity solutions protecting businesses worldwide.
+            </p>
+            <div className="text-sm text-gray-500">
+              <span className="bg-green-900/30 text-green-400 px-2 py-1 rounded text-xs">
+                WE ARE CERTIFIED
+              </span>
+            </div>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-            <div>
-              <h4 className="font-bold mb-4">Services</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Cloud Security</li>
-                <li>VAPT</li>
-                <li>Team Assessment</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-bold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>About Us</li>
-                <li>Contact</li>
-                <li>Careers</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-bold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Privacy Policy</li>
-                <li>Terms of Service</li>
-                <li>Cookie Policy</li>
-              </ul>
-            </div>
+
+          {/* Company Links */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Company</h3>
+            <ul className="space-y-2">
+              {['Home', 'Solutions', 'Process', 'Report', 'Services', 'Careers', 'Bug Bounty'].map((item) => (
+                <li key={item}>
+                  <Link href="#" className="text-gray-400 hover:text-cyan-400 transition-colors">
+                    {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Services Links */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Services</h3>
+            <ul className="space-y-2">
+              {['Dark Eye Watcher', 'Cloud Security', 'Virtual CISO', 'Red Team Assessment', 'VAPT'].map((service) => (
+                <li key={service}>
+                  <Link href="#" className="text-gray-400 hover:text-cyan-400 transition-colors">
+                    {service}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal Links */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Legal</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="#" className="text-gray-400 hover:text-cyan-400 transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-gray-400 hover:text-cyan-400 transition-colors">
+                  Terms & Conditions
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
-        
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>© {new Date().getFullYear()} ApniSec. All rights reserved.</p>
+
+        {/* Copyright */}
+        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
+          <p className="text-gray-500 text-sm">
+            © {new Date().getFullYear()} ApniSec. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

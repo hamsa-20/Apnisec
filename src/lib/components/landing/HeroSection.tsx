@@ -1,30 +1,35 @@
-import Link from 'next/link';
-
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
-      <div className="container mx-auto px-4 text-center">
-        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-          Enterprise Cybersecurity
-          <span className="block text-blue-600">Made Simple</span>
-        </h1>
-        <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-          Protect your digital assets with ApniSec's comprehensive security solutions.
-          Cloud security, vulnerability assessments, and penetration testing in one platform.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/register">
-            <button className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-              Start Free Trial
+    <section className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-black to-purple-900 py-20 md:py-32">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            Defend Against Cyber Threats
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">
+              Before They Strike
+            </span>
+          </h1>
+          
+          <p className="text-xl text-gray-300 mb-10 max-w-3xl mx-auto">
+            Elevate Your Security Posture With Advanced Security Solutions And In-Depth Vulnerability Assessments, 
+            Aligned With The Trusted Frameworks Of OWASP, NIST, SANS, CERT, And NIC.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-cyan-600 hover:to-blue-700 transition-all">
+              Download Free Report
             </button>
-          </Link>
-          <Link href="/#services">
-            <button className="px-8 py-3 bg-white text-blue-600 border border-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition">
-              View Services
+            <button className="bg-transparent border-2 border-cyan-500 text-cyan-400 px-8 py-4 rounded-lg font-semibold hover:bg-cyan-500 hover:text-white transition-all">
+              Get Quote
             </button>
-          </Link>
+          </div>
+
+          <div className="mt-16 pt-8 border-t border-gray-700">
+            <div className="text-3xl font-bold text-cyan-400">100+</div>
+            <div className="text-gray-400">Organizations Secured</div>
+          </div>
         </div>
       </div>
     </section>
-  );
+  )
 }
