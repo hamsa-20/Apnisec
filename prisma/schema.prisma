@@ -1,52 +1,57 @@
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
 }
 
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String
   name      String?
-  company   String?
-  role      String   @default("USER")
-  isActive  Boolean  @default(true)
-  
-  // For login tracking
-  lastLoginAt   DateTime?
-  lastLoginIp   String?
-  
-  // For password reset
-  resetToken    String?
-  resetTokenExpiry DateTime?
-  
-  // Timestamps
+  password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  // Relations
   issues Issue[]
+  
+  @@map("users")
 }
 
 model Issue {
   id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        String   // "CLOUD_SECURITY", "RETEAM_ASSESSMENT", "VAPT"
+  type        IssueType
   title       String
   description String
-  priority    String?  @default("MEDIUM")  // "LOW", "MEDIUM", "HIGH", "CRITICAL"
-  status      String?  @default("OPEN")    // "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"
-  
+  priority    Priority? @default(MEDIUM)
+  status      Status?   @default(OPEN)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  @@index([userId])
-  @@index([type])
-  @@index([status])
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("issues")
+}
+
+enum IssueType {
+  CLOUD_SECURITY
+  RETEAM_ASSESSMENT
+  VAPT
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Status {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
 }

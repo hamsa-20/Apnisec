@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { AuthHandler } from '@/lib/classes/handlers/AuthHandler';
 
+const authHandler = new AuthHandler();
+
 export async function POST(request: NextRequest) {
-  const handler = new AuthHandler();
-  return await handler.register(request);
+  return authHandler.register(request);
 }

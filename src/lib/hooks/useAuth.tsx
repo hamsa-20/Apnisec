@@ -12,6 +12,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null
+  token: string | null
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   register: (userData: any) => Promise<void>
@@ -26,12 +27,24 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
+  const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/me')
+        // Check for token in localStorage
+        const storedToken = localStorage.getItem('token')
+        if (storedToken) {
+          setToken(storedToken)
+        }
+
+        const response = await fetch('/api/auth/me', {
+          headers: storedToken ? {
+            'Authorization': `Bearer ${storedToken}`
+          } : {}
+        })
+        
         if (response.ok) {
           const data = await response.json()
           setUser(data.user)
@@ -62,6 +75,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const data = await response.json()
       setUser(data.user)
+      
+      // Store the token
+      if (data.token) {
+        setToken(data.token)
+        localStorage.setItem('token', data.token)
+      }
     } finally {
       setLoading(false)
     }
@@ -74,6 +93,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error('Logout failed:', error)
     } finally {
       setUser(null)
+      setToken(null)
+      localStorage.removeItem('token')
       if (typeof window !== 'undefined') {
         window.location.href = '/'
       }
@@ -96,6 +117,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const data = await response.json()
       setUser(data.user)
+      
+      // Store the token
+      if (data.token) {
+        setToken(data.token)
+        localStorage.setItem('token', data.token)
+      }
     } finally {
       setLoading(false)
     }
@@ -103,6 +130,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value = {
     user,
+    token,
     login,
     logout,
     register,

@@ -1,4 +1,3 @@
-// src/lib/classes/services/JWTService.ts
 import jwt, { SignOptions } from 'jsonwebtoken'
 import { ApiError } from '../errors/ApiError'
 
@@ -88,6 +87,11 @@ export class JWTService {
       }
       throw new ApiError('Token verification failed', 401)
     }
+  }
+
+  // ADD THIS ALIAS METHOD FOR BACKWARD COMPATIBILITY
+  verifyToken(token: string): TokenPayload {
+    return this.verifyAccessToken(token);
   }
 
   verifyRefreshToken(token: string): { userId: string } {

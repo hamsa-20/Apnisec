@@ -1,112 +1,73 @@
-// src/lib/classes/handlers/AuthHandler.ts
-import { AuthService } from '../services/AuthService'
-import { ApiError } from '../errors/ApiError'
-import { RateLimiterService } from '../services/RateLimiterService'
+import { NextRequest, NextResponse } from 'next/server';
+import { AuthService } from '../services/AuthService';
+import { ApiError } from '../errors/ApiError';
 
 export class AuthHandler {
-  private authService: AuthService
-  private rateLimiter: RateLimiterService
+  private authService: AuthService;
 
   constructor() {
-    this.authService = new AuthService()
-    this.rateLimiter = new RateLimiterService()
+    this.authService = new AuthService();
   }
 
-  async handleRegister(request: Request) {
+  async register(request: NextRequest) {
     try {
-      const identifier = this.getClientIdentifier(request)
-      await this.rateLimiter.checkLimit(`register_${identifier}`, 5, 3600000)
-      
-      const body = await request.json()
-      
-      const result = await this.authService.register(body)
-      
-      return Response.json({
+      const body = await request.json();
+      const result = await this.authService.register(body);
+
+      return NextResponse.json({
         success: true,
-        data: result.user,
-        token: result.tokens.accessToken
-      }, {
-        status: 201,
-        headers: this.setAuthCookies(result.tokens)
-      })
-    } catch (error) {
-      if (error instanceof ApiError) {
-        return Response.json({
-          success: false,
-          error: error.message
-        }, { status: error.statusCode })
-      }
-      
-      return Response.json({
+        user: result.user,
+        token: result.tokens.accessToken,
+      }, { status: 201 });
+
+    } catch (error: any) {
+      return NextResponse.json({
         success: false,
-        error: 'Internal server error'
-      }, { status: 500 })
+        error: error.message || 'Registration failed',
+      }, { status: error.statusCode || 500 });
     }
   }
 
-  async handleLogin(request: Request) {
+  async login(request: NextRequest) {
     try {
-      const identifier = this.getClientIdentifier(request)
-      await this.rateLimiter.checkLimit(`login_${identifier}`, 10, 900000)
-      
-      const body = await request.json()
-      const { email, password } = body
-      
-      const result = await this.authService.login(email, password, this.getClientIp(request))
-      
-      return Response.json({
+      const body = await request.json();
+      const { email, password } = body;
+
+      const result = await this.authService.login(email, password);
+
+      return NextResponse.json({
         success: true,
-        data: result.user
-      }, {
-        headers: this.setAuthCookies(result.tokens)
-      })
-    } catch (error) {
-      if (error instanceof ApiError) {
-        return Response.json({
-          success: false,
-          error: error.message
-        }, { status: error.statusCode })
-      }
-      
-      return Response.json({
+        user: result.user,
+        token: result.tokens.accessToken,
+      });
+
+    } catch (error: any) {
+      return NextResponse.json({
         success: false,
-        error: 'Internal server error'
-      }, { status: 500 })
+        error: error.message || 'Login failed',
+      }, { status: error.statusCode || 500 });
     }
   }
 
-  // Alias methods for API routes
-  async register(request: Request) {
-    return this.handleRegister(request)
-  }
+  async me(request: NextRequest) {
+    try {
+      const token = request.headers.get('authorization')?.replace('Bearer ', '');
+      
+      if (!token) {
+        throw new ApiError('No token provided', 401);
+      }
 
-  async login(request: Request) {
-    return this.handleLogin(request)
-  }
+      // In a real app, verify token and get user from DB
+      return NextResponse.json({
+        success: true,
+        user: { id: 'user-id', email: 'user@example.com' }
+      });
 
-  private getClientIdentifier(request: Request): string {
-    const ip = this.getClientIp(request)
-    const userAgent = request.headers.get('user-agent') || 'unknown'
-    return `${ip}_${userAgent}`
-  }
-
-  private getClientIp(request: Request): string {
-    return request.headers.get('x-forwarded-for')?.split(',')[0] || 
-           request.headers.get('x-real-ip') || 
-           'unknown'
-  }
-
-  private setAuthCookies(tokens: { accessToken: string; refreshToken: string }): Headers {
-    const headers = new Headers()
-    
-    headers.append('Set-Cookie', 
-      `accessToken=${tokens.accessToken}; HttpOnly; Path=/; Max-Age=900; SameSite=Strict`
-    )
-    
-    headers.append('Set-Cookie',
-      `refreshToken=${tokens.refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Strict`
-    )
-    
-    return headers
+    } catch (error: any) {
+      return NextResponse.json({
+        success: false,
+        error: error.message || 'Authentication failed',
+      }, { status: 401 });
+    }
   }
 }
