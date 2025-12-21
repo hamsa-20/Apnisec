@@ -2,6 +2,8 @@
 
 A full-stack Next.js application with authentication, rate limiting, email integration, and SEO optimization built for ApniSec cybersecurity services.
 
+
+
 ##  Features
 
 - ✅ **Custom JWT Authentication** - Secure user registration and login
@@ -14,6 +16,9 @@ A full-stack Next.js application with authentication, rate limiting, email integ
 - ✅ **SEO Optimized** - 80%+ Lighthouse SEO score
 - ✅ **Protected Routes** - Secure dashboard and profile pages
 
+---
+LIVE Demo:LIVE:https://apnisec-xnjq.vercel.app/
+---
 ##  Tech Stack
 
 ### Frontend
