@@ -1,4 +1,5 @@
-'use client'
+﻿'use client'
+export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -24,6 +25,25 @@ interface Issue {
 }
 
 export default function DashboardPage() {
+  // Fix: Prevent useAuth from running during build
+  const [isMounted, setIsMounted] = useState(false)
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+  
+  // Show loading during build/prerender
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  // Now safe to use useAuth (only runs on client)
   const { user, loading, logout } = useAuth()
   const router = useRouter()
   
