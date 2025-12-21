@@ -17,7 +17,7 @@ A full-stack Next.js application with authentication, rate limiting, email integ
 - ✅ **Protected Routes** - Secure dashboard and profile pages
 
 ---
-LIVE Demo:LIVE:https://apnisec-xnjq.vercel.app/
+ Demo:https://apnisec-xnjq.vercel.app/
 ---
 ##  Tech Stack
 
