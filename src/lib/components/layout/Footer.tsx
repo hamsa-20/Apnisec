@@ -1,4 +1,4 @@
-import { Shield } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Footer() {
@@ -9,8 +9,13 @@ export default function Footer() {
           {/* Brand Column */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500">
-                <Shield className="h-6 w-6 text-white" />
+              <div className="h-10 w-10 relative">
+                <Image
+                  src="/logo.png"
+                  alt="ApniSec Logo"
+                  fill
+                  className="object-contain"
+                />
               </div>
               <div>
                 <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
