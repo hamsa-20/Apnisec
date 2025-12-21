@@ -3,5 +3,6 @@ import { AuthHandler } from '@/lib/classes/handlers/AuthHandler'
 
 export async function POST(request: NextRequest) {
   const handler = new AuthHandler()
-  return await handler.login(request) // FIXED: Changed from handleLogin() to login()
+  // Check if method is called 'login' or 'handleLogin'
+  return await handler.login(request) // OR handler.handleLogin(request)
 }
