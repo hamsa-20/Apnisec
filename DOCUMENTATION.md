@@ -544,6 +544,24 @@ src/components/
 - [ ] Set up error logging
 - [ ] Configure backups
 
+📈 SEO Optimization
+Achieved 92% SEO score on Google Lighthouse:
+
+![SEO Score 92%](https://github.com/hamsa-20/Apnisec/blob/main/Screenshot%202025-12-21%20154313.png)
+
+*SEO Audit Results from Lighthouse*
+
+**Key SEO improvements:**
+- Semantic HTML with proper heading hierarchy
+- Optimized meta tags and page titles
+- Image alt attributes for accessibility
+
+**Key SEO improvements implemented:**
+- Semantic HTML structure with proper heading hierarchy
+- Optimized meta tags and page titles
+- Image alt attributes for accessibility
+- Mobile-responsive design
+
 ## Performance Optimization
 
 1. **Database Indexing**
