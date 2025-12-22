@@ -196,7 +196,8 @@ export class EmailService {
       console.log('📧 Sending welcome email to:', email)
 
       return await this.resend.emails.send({
-        from: 'ApniSec <onboarding@resend.dev>',
+        from: 'ApniSec <noreply@resend.dev>',
+
         to: [email],
         subject: 'Welcome to ApniSec 🎉',
         html: `
@@ -212,7 +213,7 @@ export class EmailService {
 
   async sendSecurityAlert(email: string, subject: string, message: string) {
     return this.resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'ApniSec <noreply@resend.dev>',
 
       to: [email],
       subject,
@@ -222,7 +223,8 @@ export class EmailService {
 
   async sendIssueNotification(email: string, issue: any) {
     return this.resend.emails.send({
-      from: 'ApniSec <onboarding@resend.dev>',
+      from: 'ApniSec <noreply@resend.dev>',
+
       to: [email],
       subject: `New Issue Created: ${issue.title}`,
       html: `
@@ -248,7 +250,8 @@ export class EmailService {
 
   try {
     return await this.resend.emails.send({
-      from: 'ApniSec Alerts <onboarding@resend.dev>',
+      from: 'ApniSec <noreply@resend.dev>',
+
       to: [email],
       subject: `🚨 Dark Web Alert for ${domain}`,
       html: `
@@ -281,7 +284,7 @@ async sendVCISOPlan(
 
   try {
     return await this.resend.emails.send({
-      from: 'ApniSec VCISO <onboarding@resend.dev>',
+      from: 'ApniSec <noreply@resend.dev>',
       to: [email],
       subject: `📋 Your VCISO Security Plan for ${companyName}`,
       html: `
