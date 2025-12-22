@@ -284,7 +284,8 @@ async sendVCISOPlan(
 
   try {
     return await this.resend.emails.send({
-      from: 'ApniSec <noreply@resend.dev>',
+      from: 'ApniSec <noreply@resend.dev>'
+,
       to: [email],
       subject: `📋 Your VCISO Security Plan for ${companyName}`,
       html: `
