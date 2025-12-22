@@ -27,14 +27,14 @@ export class AuthHandler {
         { status: 201 }
       )
 
-      response.cookies.set({
-        name: 'accessToken',
-        value: result.tokens.accessToken,
-        httpOnly: true,
-        path: '/',
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-      })
+response.cookies.set({
+  name: 'accessToken',
+  value: result.tokens.accessToken,
+  httpOnly: true,
+  path: '/',
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+})
 
       return response
     } catch (error: any) {
@@ -63,14 +63,14 @@ async login(request: NextRequest) {
     })
 
     // ✅ THIS IS THE COOKIE YOU ARE ASKING ABOUT
-    response.cookies.set({
-      name: 'accessToken',
-      value: result.tokens.accessToken,
-      httpOnly: true,
-      path: '/',
-      sameSite: 'lax',
-      secure: false, // ❗ MUST be false on localhost
-    })
+   response.cookies.set({
+  name: 'accessToken',
+  value: result.tokens.accessToken,
+  httpOnly: true,
+  path: '/',
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+})
 
     return response
   } catch (error: any) {
