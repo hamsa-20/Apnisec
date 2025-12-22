@@ -28,7 +28,12 @@ export class VCISOService {
     }
 
     // Send plan email
-    await this.emailService.sendVCISOPlan(userId, companyInfo.name, plan)
+    await this.emailService.sendVCISOPlan(
+  'test@example.com', // replace later with real user email
+  companyInfo.name,
+  plan
+)
+
 
     return plan
   }

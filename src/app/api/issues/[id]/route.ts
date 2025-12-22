@@ -1,29 +1,26 @@
-import { NextRequest } from 'next/server';
-import { IssueHandler } from '@/lib/classes/handlers/IssueHandler';
-
-const handler = new IssueHandler();
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  // Await the params Promise to get the actual id
-  const resolvedParams = await params;
-  return await handler.getIssue(request, resolvedParams);
-}
-
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const resolvedParams = await params;
-  return await handler.updateIssue(request, resolvedParams);
-}
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { JWTService } from '@/lib/classes/services/JWTService'
+import { IssueService } from '@/lib/classes/services/IssueService'
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-  const resolvedParams = await params;
-  return await handler.deleteIssue(request, resolvedParams);
+  try {
+    const token = cookies().get('accessToken')?.value
+    if (!token) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+
+    const jwtService = new JWTService()
+    const payload = jwtService.verifyToken(token)
+
+    const issueService = new IssueService()
+    await issueService.deleteIssue(params.id, payload.userId)
+
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+  }
 }

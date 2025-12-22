@@ -100,20 +100,36 @@ export class IssueHandler {
     }
   }
 
-  async getIssue(request: NextRequest, params: { id: string }) {
-    try {
-      const userId = await this.getUserIdFromRequest(request);
-      const issue = await this.issueService.getIssue(params.id, userId);
+async getIssue(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  try {
+    const userId = await this.getUserIdFromRequest(request)
+    const issueId = context.params.id
 
-      return NextResponse.json({
-        success: true,
-        data: issue
-      });
+    const issue = await this.issueService.getIssue(issueId, userId)
 
-    } catch (error: any) {
-      return this.handleError(error);
+    if (!issue) {
+      return NextResponse.json(
+        { success: false, error: 'Issue not found' },
+        { status: 404 }
+      )
     }
+
+    return NextResponse.json({
+      success: true,
+      data: issue,
+    })
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    )
   }
+}
+
+
 
   async updateIssue(request: NextRequest, params: { id: string }) {
     try {

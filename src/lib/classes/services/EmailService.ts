@@ -1,4 +1,181 @@
-// src/lib/classes/services/EmailService.ts (UPDATE existing file)
+// import { Resend } from 'resend'
+// import { ApiError } from '../errors/ApiError'
+
+// export class EmailService {
+//   private resend: Resend
+//   private from: string
+
+//   constructor() {
+//     if (!process.env.RESEND_API_KEY) {
+//       throw new Error('RESEND_API_KEY is missing')
+//     }
+
+//     this.resend = new Resend(process.env.RESEND_API_KEY)
+//     this.from = process.env.EMAIL_FROM || 'ApniSec <noreply@apnisec.com>'
+//   }
+
+//   /* ================= BASIC EMAILS ================= */
+
+//   async sendWelcomeEmail(email: string, name: string) {
+//     try {
+//       await this.resend.emails.send({
+//         from: this.from,
+//         to: email,
+//         subject: 'Welcome to ApniSec 🚀',
+//         html: `
+//           <div style="font-family: Arial, sans-serif">
+//             <h2>Welcome, ${name} 👋</h2>
+//             <p>Your ApniSec account has been created successfully.</p>
+//             <p>You can now manage security issues from your dashboard.</p>
+//             <br />
+//             <p>— ApniSec Team</p>
+//           </div>
+//         `,
+//       })
+//     } catch (error) {
+//       console.error('Welcome email failed:', error)
+//     }
+//   }
+
+//   async sendSecurityAlert(email: string, subject: string, message: string) {
+//     try {
+//       await this.resend.emails.send({
+//         from: this.from,
+//         to: email,
+//         subject,
+//         html: `
+//           <div style="font-family: Arial, sans-serif">
+//             <h3>Security Alert</h3>
+//             <p>${message}</p>
+//             <br />
+//             <p>— ApniSec Security Team</p>
+//           </div>
+//         `,
+//       })
+//     } catch (error) {
+//       console.error('Security alert email failed:', error)
+//     }
+//   }
+
+//   async sendIssueNotification(
+//     email: string,
+//     issue: { type: string; title: string; description: string }
+//   ) {
+//     try {
+//       await this.resend.emails.send({
+//         from: this.from,
+//         to: email,
+//         subject: 'New Issue Created',
+//         html: `
+//           <div style="font-family: Arial, sans-serif">
+//             <h3>Issue Created Successfully</h3>
+//             <p><strong>Type:</strong> ${issue.type}</p>
+//             <p><strong>Title:</strong> ${issue.title}</p>
+//             <p><strong>Description:</strong></p>
+//             <p>${issue.description}</p>
+//           </div>
+//         `,
+//       })
+//     } catch (error) {
+//       console.error('Issue notification email failed:', error)
+//     }
+//   }
+
+//   /* ================= ADVANCED SECURITY EMAILS ================= */
+
+//   async sendDarkWebAlert(
+//     email: string,
+//     domain: string,
+//     scanResult: {
+//       leaksFound: number
+//       credentialsExposed: number
+//       severity: string
+//       lastScan: string
+//     }
+//   ) {
+//     try {
+//       await this.resend.emails.send({
+//         from: this.from,
+//         to: email,
+//         subject: `🚨 Dark Web Alert for ${domain}`,
+//         html: this.generateDarkWebAlertHTML(domain, scanResult),
+//       })
+//     } catch (error) {
+//       console.error('Dark web alert email failed:', error)
+//       throw new ApiError('Failed to send dark web alert', 500)
+//     }
+//   }
+
+//   async sendVCISOPlan(
+//     email: string,
+//     companyName: string,
+//     plan: {
+//       riskAssessment: {
+//         riskLevel: string
+//         vulnerabilityScore: number
+//       }
+//       securityControls: string[]
+//       timeline: { phase: string; duration: string }[]
+//     }
+//   ) {
+//     try {
+//       await this.resend.emails.send({
+//         from: this.from,
+//         to: email,
+//         subject: `📋 VCISO Security Plan for ${companyName}`,
+//         html: this.generateVCISOPlanHTML(companyName, plan),
+//       })
+//     } catch (error) {
+//       console.error('VCISO plan email failed:', error)
+//       throw new ApiError('Failed to send VCISO plan', 500)
+//     }
+//   }
+
+//   /* ================= EMAIL TEMPLATES ================= */
+
+//   private generateDarkWebAlertHTML(domain: string, scanResult: any): string {
+//     return `
+//       <div style="font-family: Arial, sans-serif">
+//         <h2 style="color:#dc2626">🚨 Dark Web Security Alert</h2>
+//         <p>Domain: <strong>${domain}</strong></p>
+
+//         <ul>
+//           <li>Leaks Found: ${scanResult.leaksFound}</li>
+//           <li>Credentials Exposed: ${scanResult.credentialsExposed}</li>
+//           <li>Severity: ${scanResult.severity}</li>
+//           <li>Last Scan: ${new Date(scanResult.lastScan).toDateString()}</li>
+//         </ul>
+
+//         <p>Please take immediate action.</p>
+//       </div>
+//     `
+//   }
+
+//   private generateVCISOPlanHTML(companyName: string, plan: any): string {
+//     return `
+//       <div style="font-family: Arial, sans-serif">
+//         <h2>📋 VCISO Security Plan</h2>
+//         <p><strong>Company:</strong> ${companyName}</p>
+
+//         <h3>Risk Assessment</h3>
+//         <p>Risk Level: ${plan.riskAssessment.riskLevel}</p>
+//         <p>Score: ${plan.riskAssessment.vulnerabilityScore}/100</p>
+
+//         <h3>Security Controls</h3>
+//         <ul>
+//           ${plan.securityControls.map((c: string) => `<li>${c}</li>`).join('')}
+//         </ul>
+
+//         <h3>Timeline</h3>
+//         <ul>
+//           ${plan.timeline
+//             .map((t: any) => `<li>${t.phase} – ${t.duration}</li>`)
+//             .join('')}
+//         </ul>
+//       </div>
+//     `
+//   }
+// }
 import { Resend } from 'resend'
 import { ApiError } from '../errors/ApiError'
 
@@ -6,116 +183,132 @@ export class EmailService {
   private resend: Resend
 
   constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY!)
+    this.resend = new Resend(process.env.RESEND_API_KEY || '')
   }
 
-  // EXISTING METHODS (keep these):
-  async sendWelcomeEmail(email: string, name: string) { /* ... existing code ... */ }
-  async sendSecurityAlert(email: string, subject: string, message: string) { /* ... existing code ... */ }
-  async sendIssueNotification(email: string, issue: any) { /* ... existing code ... */ }
+  async sendWelcomeEmail(email: string, name: string) {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('RESEND_API_KEY missing, skipping email')
+      return
+    }
 
-  // NEW METHODS for cybersecurity features:
-  async sendDarkWebAlert(userId: string, domain: string, scanResult: any) {
     try {
-      const data = await this.resend.emails.send({
-        from: 'ApniSec Security <alerts@apnisec.com>',
-        to: ['user-email-would-be-here@example.com'], // In real app, get from user ID
-        subject: `🚨 Dark Web Alert for ${domain}`,
-        html: this.generateDarkWebAlertHTML(domain, scanResult)
+      console.log('📧 Sending welcome email to:', email)
+
+      return await this.resend.emails.send({
+        from: 'ApniSec <onboarding@resend.dev>',
+        to: [email],
+        subject: 'Welcome to ApniSec 🎉',
+        html: `
+          <h2>Welcome ${name}</h2>
+          <p>Your ApniSec account has been successfully created.</p>
+        `,
       })
-      return data
     } catch (error) {
-      console.error('Failed to send dark web alert:', error)
-      throw new ApiError('Failed to send dark web alert', 500)
+      console.error('Email error:', error)
+      throw new ApiError('Failed to send welcome email', 500)
     }
   }
 
-  async sendVCISOPlan(userId: string, companyName: string, plan: any) {
-    try {
-      const data = await this.resend.emails.send({
-        from: 'ApniSec VCISO <vciso@apnisec.com>',
-        to: ['user-email@example.com'],
-        subject: `📋 Your VCISO Security Plan for ${companyName}`,
-        html: this.generateVCISOPlanHTML(companyName, plan)
-      })
-      return data
-    } catch (error) {
-      console.error('Failed to send VCISO plan:', error)
-      throw new ApiError('Failed to send security plan', 500)
-    }
+  async sendSecurityAlert(email: string, subject: string, message: string) {
+    return this.resend.emails.send({
+      from: 'onboarding@resend.dev',
+
+      to: [email],
+      subject,
+      html: `<p>${message}</p>`,
+    })
   }
 
-  private generateDarkWebAlertHTML(domain: string, scanResult: any): string {
-    return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #dc2626;">🚨 Dark Web Security Alert</h2>
-        <p>We found potential security issues for your domain: <strong>${domain}</strong></p>
-        
-        <div style="background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="color: #dc2626;">Scan Results:</h3>
-          <ul>
-            <li>Leaks Found: ${scanResult.leaksFound}</li>
-            <li>Credentials Exposed: ${scanResult.credentialsExposed}</li>
-            <li>Severity Level: ${scanResult.severity}</li>
-            <li>Scan Date: ${new Date(scanResult.lastScan).toLocaleDateString()}</li>
-          </ul>
-        </div>
-        
-        <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px;">
-          <h3 style="color: #0369a1;">Recommended Actions:</h3>
-          <ol>
-            <li>Reset passwords for affected accounts</li>
-            <li>Enable multi-factor authentication</li>
-            <li>Monitor financial transactions</li>
-            <li>Educate employees about phishing attacks</li>
-          </ol>
-        </div>
-        
-        <p style="margin-top: 20px;">
-          <a href="https://yourapp.com/dashboard" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-            View Full Report in Dashboard
-          </a>
-        </p>
-      </div>
-    `
+  async sendIssueNotification(email: string, issue: any) {
+    return this.resend.emails.send({
+      from: 'ApniSec <onboarding@resend.dev>',
+      to: [email],
+      subject: `New Issue Created: ${issue.title}`,
+      html: `
+        <h3>${issue.title}</h3>
+        <p>${issue.description}</p>
+        <p>Type: ${issue.type}</p>
+      `,
+    })
+  }
+  async sendDarkWebAlert(
+  email: string,
+  domain: string,
+  scanResult: {
+    severity: string
+    leaksFound: number
+    credentialsExposed: number
+  }
+) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY missing, skipping dark web alert email')
+    return
   }
 
-  private generateVCISOPlanHTML(companyName: string, plan: any): string {
-    return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #059669;">📋 Your VCISO Security Plan</h2>
-        <p>Dear ${companyName} Team,</p>
-        
-        <p>Your customized security plan has been prepared by ApniSec Virtual CISO.</p>
-        
-        <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <h3>Risk Assessment:</h3>
-          <p>Risk Level: <strong>${plan.riskAssessment.riskLevel}</strong></p>
-          <p>Vulnerability Score: ${plan.riskAssessment.vulnerabilityScore}/100</p>
-        </div>
-        
-        <div style="background-color: #f0fdf4; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <h3>Key Security Controls:</h3>
-          <ul>
-            ${plan.securityControls.map((control: string) => `<li>${control}</li>`).join('')}
-          </ul>
-        </div>
-        
-        <div style="background-color: #fef7cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <h3>Implementation Timeline:</h3>
-          <ul>
-            ${plan.timeline.map((phase: any) => 
-              `<li><strong>${phase.phase}:</strong> ${phase.duration}</li>`
-            ).join('')}
-          </ul>
-        </div>
-        
-        <p style="margin-top: 20px;">
-          <a href="https://yourapp.com/dashboard/vciso-plan" style="background-color: #059669; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-            View Complete Plan
-          </a>
-        </p>
-      </div>
-    `
+  try {
+    return await this.resend.emails.send({
+      from: 'ApniSec Alerts <onboarding@resend.dev>',
+      to: [email],
+      subject: `🚨 Dark Web Alert for ${domain}`,
+      html: `
+        <h2>🚨 Dark Web Exposure Detected</h2>
+        <p><strong>Domain:</strong> ${domain}</p>
+        <p><strong>Severity:</strong> ${scanResult.severity}</p>
+
+        <ul>
+          <li>Leaks Found: ${scanResult.leaksFound}</li>
+          <li>Credentials Exposed: ${scanResult.credentialsExposed}</li>
+        </ul>
+
+        <p>Please take immediate action to secure your systems.</p>
+      `,
+    })
+  } catch (error) {
+    console.error('Failed to send dark web alert email:', error)
+    throw new ApiError('Failed to send dark web alert email', 500)
   }
+}
+async sendVCISOPlan(
+  email: string,
+  companyName: string,
+  plan: any
+) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY missing, skipping VCISO email')
+    return
+  }
+
+  try {
+    return await this.resend.emails.send({
+      from: 'ApniSec VCISO <onboarding@resend.dev>',
+      to: [email],
+      subject: `📋 Your VCISO Security Plan for ${companyName}`,
+      html: `
+        <h2>📋 VCISO Security Plan</h2>
+
+        <p><strong>Company:</strong> ${companyName}</p>
+        <p><strong>Risk Level:</strong> ${plan.riskLevel}</p>
+
+        <h3>Key Recommendations</h3>
+        <ul>
+          ${(plan.recommendations || [])
+            .map((r: string) => `<li>${r}</li>`)
+            .join('')}
+        </ul>
+
+        <p>Please review this plan carefully and reach out if you need assistance.</p>
+      `,
+    })
+  } catch (error) {
+    console.error('Failed to send VCISO plan email:', error)
+    throw new ApiError('Failed to send VCISO plan email', 500)
+  }
+}
+
+
+  
+
+      
+
 }

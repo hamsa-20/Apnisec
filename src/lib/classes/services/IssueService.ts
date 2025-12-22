@@ -1,123 +1,117 @@
-import { IssueRepository } from '../repositories/IssueRepository';
+import { IssueRepository } from '../repositories/IssueRepository'
+import { EmailService } from './EmailService'
+import { ApiError } from '../errors/ApiError'
+
+/* ================= TYPES ================= */
 
 export interface CreateIssueData {
-  type: 'cloud-security' | 'reteam-assessment' | 'vapt';
-  title: string;
-  description: string;
-  priority?: 'low' | 'medium' | 'high';
-  status?: 'open' | 'in-progress' | 'resolved';
-  userId: string;
-  userEmail?: string;
+  type: 'CLOUD_SECURITY' | 'RETEAM_ASSESSMENT' | 'VAPT'
+  title: string
+  description: string
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  status?: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
+  userId: string
+  userEmail: string
 }
 
 export interface UpdateIssueData {
-  type?: 'cloud-security' | 'reteam-assessment' | 'vapt';
-  title?: string;
-  description?: string;
-  priority?: 'low' | 'medium' | 'high';
-  status?: 'open' | 'in-progress' | 'resolved';
+  type?: 'CLOUD_SECURITY' | 'RETEAM_ASSESSMENT' | 'VAPT'
+  title?: string
+  description?: string
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  status?: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
 }
 
-export interface Issue {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  priority: string;
-  status: string;
-  userId: string;
-  userEmail?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+/* ================= SERVICE ================= */
 
 export class IssueService {
-  private issueRepository: IssueRepository;
+  private issueRepository: IssueRepository
+  private emailService: EmailService
 
   constructor() {
-    this.issueRepository = new IssueRepository();
+    this.issueRepository = new IssueRepository()
+    this.emailService = new EmailService()
   }
 
-  async createIssue(data: CreateIssueData): Promise<Issue> {
-    // In a real app, validate data and create in database
-    const issue = {
-      id: `issue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+  /* ================= CREATE ================= */
+
+  async createIssue(data: CreateIssueData) {
+    if (!data.title || !data.description) {
+      throw new ApiError('Title and description are required', 400)
+    }
+
+    const issue = await this.issueRepository.create({
       type: data.type,
       title: data.title,
       description: data.description,
-      priority: data.priority || 'medium',
-      status: data.status || 'open',
+      priority: data.priority || 'MEDIUM',
+      status: data.status || 'OPEN',
       userId: data.userId,
-      userEmail: data.userEmail,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    })
 
-    // Mock saving to database
-    return issue;
+    // 🔔 Send email notification (non-blocking)
+    this.emailService
+      .sendIssueNotification(data.userEmail, {
+        type: issue.type,
+        title: issue.title,
+        description: issue.description,
+      })
+      .catch(err => console.error('Issue email failed:', err))
+
+    return issue
   }
 
-  async getIssues(userId: string, type?: string): Promise<Issue[]> {
-    // Mock data for testing
-    const issues: Issue[] = [
-      {
-        id: '1',
-        type: 'cloud-security',
-        title: 'Cloud Configuration Issue',
-        description: 'Security group misconfiguration detected',
-        priority: 'high',
-        status: 'open',
-        userId: userId,
-        userEmail: 'user@example.com',
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-15')
+  /* ================= READ ================= */
+
+  async getIssues(userId: string, type?: string) {
+    return this.issueRepository.findMany({
+      where: {
+        userId,
+        ...(type ? { type } : {}),
       },
-      {
-        id: '2',
-        type: 'vapt',
-        title: 'Penetration Test Results',
-        description: 'Vulnerability assessment completed',
-        priority: 'medium',
-        status: 'in-progress',
-        userId: userId,
-        userEmail: 'user@example.com',
-        createdAt: new Date('2024-01-10'),
-        updatedAt: new Date('2024-01-12')
-      }
-    ];
-
-    // Filter by type if specified
-    if (type) {
-      return issues.filter(issue => issue.type === type);
-    }
-
-    return issues;
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
   }
 
-  async getIssue(id: string, userId: string): Promise<Issue | null> {
-    const issues = await this.getIssues(userId);
-    return issues.find(issue => issue.id === id) || null;
+  async getIssueById(id: string, userId: string) {
+  const issue = await this.issueRepository.findFirst({
+    where: { id },
+  })
+
+  if (!issue || issue.userId !== userId) {
+    throw new ApiError('Issue not found', 404)
   }
 
-  async updateIssue(id: string, userId: string, data: UpdateIssueData): Promise<Issue | null> {
-    const issue = await this.getIssue(id, userId);
-    
-    if (!issue) {
-      return null;
-    }
+  return issue
+}
 
-    // Update issue with new data
-    const updatedIssue = {
-      ...issue,
+  /* ================= UPDATE ================= */
+
+  async updateIssue(id: string, userId: string, data: UpdateIssueData) {
+    const issue = await this.getIssueById(id, userId)
+
+    return this.issueRepository.update(issue.id, {
       ...data,
-      updatedAt: new Date()
-    };
-
-    return updatedIssue;
+    })
   }
+  async getIssue(issueId: string, userId: string) {
+  const issue = await this.issueRepository.findById(issueId)
 
-  async deleteIssue(id: string, userId: string): Promise<boolean> {
-    const issue = await this.getIssue(id, userId);
-    return !!issue; // Return true if issue existed
+  if (!issue) return null
+  if (issue.userId !== userId) return null
+
+  return issue
+}
+
+
+  /* ================= DELETE ================= */
+
+  async deleteIssue(id: string, userId: string) {
+    const issue = await this.getIssueById(id, userId)
+
+    await this.issueRepository.delete(issue.id)
+    return true
   }
 }

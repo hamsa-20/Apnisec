@@ -8,15 +8,24 @@ export class UserRepository extends BaseRepository<User> {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.findFirst({
-      where: { email }
-    })
+    try {
+      return await this.findFirst({
+        where: { email }
+      })
+    } catch (error) {
+      // ✅ User not found should NOT throw
+      return null
+    }
   }
 
   async findByResetToken(token: string): Promise<User | null> {
-    return this.findFirst({
-      where: { resetToken: token }
-    })
+    try {
+      return await this.findFirst({
+        where: { resetToken: token }
+      })
+    } catch {
+      return null
+    }
   }
 
   async updatePassword(id: string, hashedPassword: string): Promise<User> {
@@ -33,4 +42,10 @@ export class UserRepository extends BaseRepository<User> {
       lastLoginIp: ipAddress || null
     } as any)
   }
+  async findById(id: string) {
+  return this.prisma.user.findUnique({
+    where: { id },
+  })
+}
+
 }

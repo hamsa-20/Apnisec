@@ -79,7 +79,8 @@ export class UserHandler {
 
       // In a real app, you'd get userId from JWT token
       const userId = 'demo-user-id';
-      const updatedUser = await this.userService.updateUserProfile(userId, body);
+      const updatedUser = await this.userService.updateProfile(userId, body)
+
 
       const response = NextResponse.json({
         success: true,

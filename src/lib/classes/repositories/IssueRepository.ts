@@ -39,6 +39,12 @@ export class IssueRepository extends BaseRepository<Issue> {
       orderBy: { createdAt: 'desc' }
     })
   }
+  async findById(id: string) {
+  return this.prisma.issue.findUnique({
+    where: { id },
+  })
+}
+
 
   async getIssueStats(userId: string): Promise<{
     total: number

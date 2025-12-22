@@ -24,7 +24,12 @@ export class DarkEyeWatcherService {
 
     // Send alert email if critical issues found
     if (mockResults.severity === 'CRITICAL' || mockResults.severity === 'HIGH') {
-      await this.emailService.sendDarkWebAlert(userId, domain, mockResults)
+      await this.emailService.sendDarkWebAlert(
+  'test@example.com', // replace later with real user email
+  domain,
+  mockResults
+)
+
     }
 
     return mockResults
