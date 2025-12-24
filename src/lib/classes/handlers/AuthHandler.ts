@@ -114,53 +114,90 @@ import { cookies } from 'next/headers'
 //   }
 // }
 
+// import { NextRequest, NextResponse } from 'next/server'
+// import { cookies } from 'next/headers'
+// import { AuthService } from '@/lib/classes/services/AuthService'
+// import { JWTService } from '@/lib/classes/services/JWTService'
+// import { ApiError } from '@/lib/classes/errors/ApiError'
+
 export class AuthHandler {
   private authService = new AuthService()
   private jwtService = new JWTService()
 
   async register(req: NextRequest) {
-    const body = await req.json()
-    const result = await this.authService.register(body)
+    try {
+      const body = await req.json()
+      const result = await this.authService.register(body)
 
-    const response = NextResponse.json(
-      { success: true, user: result.user },
-      { status: 201 }
-    )
+      const response = NextResponse.json(
+        { success: true, user: result.user },
+        { status: 201 }
+      )
 
-    response.cookies.set({
-      name: 'accessToken',
-      value: result.tokens.accessToken,
-      httpOnly: true,
-      path: '/',
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-    })
+      response.cookies.set({
+        name: 'accessToken',
+        value: result.tokens.accessToken,
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      })
 
-    return response
+      return response
+    } catch (err: any) {
+      console.error('REGISTER ERROR:', err)
+
+      if (err instanceof ApiError) {
+        return NextResponse.json(
+          { success: false, message: err.message },
+          { status: err.statusCode }
+        )
+      }
+
+      return NextResponse.json(
+        { success: false, message: 'Internal server error' },
+        { status: 500 }
+      )
+    }
   }
 
   async login(req: NextRequest) {
-    const body = await req.json()
-    const result = await this.authService.login(body.email, body.password)
+    try {
+      const body = await req.json()
+      const result = await this.authService.login(body.email, body.password)
 
-    const response = NextResponse.json({
-      success: true,
-      user: result.user,
-    })
+      const response = NextResponse.json({
+        success: true,
+        user: result.user,
+      })
 
-    response.cookies.set({
-      name: 'accessToken',
-      value: result.tokens.accessToken,
-      httpOnly: true,
-      path: '/',
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-    })
+      response.cookies.set({
+        name: 'accessToken',
+        value: result.tokens.accessToken,
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      })
 
-    return response
+      return response
+    } catch (err: any) {
+      console.error('LOGIN ERROR:', err)
+
+      if (err instanceof ApiError) {
+        return NextResponse.json(
+          { success: false, message: err.message },
+          { status: err.statusCode }
+        )
+      }
+
+      return NextResponse.json(
+        { success: false, message: 'Internal server error' },
+        { status: 500 }
+      )
+    }
   }
 
-  // ✅ THIS METHOD WAS MISSING
   async me() {
     try {
       const token = cookies().get('accessToken')?.value
