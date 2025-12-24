@@ -6,18 +6,18 @@ A full-stack Next.js application with authentication, rate limiting, email integ
 
 ##  Features
 
-- ✅ **Custom JWT Authentication** - Secure user registration and login
-- ✅ **OOP Backend Architecture** - Complete class-based backend structure
-- ✅ **Rate Limiting** - 100 requests per 15 minutes per user/IP
-- ✅ **Email Integration** - Resend email service for notifications
-- ✅ **Issue Management** - Track Cloud Security, VAPT, and Reteam Assessment issues
-- ✅ **Modern UI** - Dark theme with gradient accents
-- ✅ **Responsive Design** - Mobile, tablet, and desktop optimized
-- ✅ **SEO Optimized** - 80%+ Lighthouse SEO score
-- ✅ **Protected Routes** - Secure dashboard and profile pages
+-  **Custom JWT Authentication** - Secure user registration and login
+-  **OOP Backend Architecture** - Complete class-based backend structure
+-  **Rate Limiting** - 100 requests per 15 minutes per user/IP
+-  **Email Integration** - Resend email service for notifications
+-  **Issue Management** - Track Cloud Security, VAPT, and Reteam Assessment issues
+-  **Modern UI** - Dark theme with gradient accents
+-  **Responsive Design** - Mobile, tablet, and desktop optimized
+-  **SEO Optimized** - 80%+ Lighthouse SEO score
+-  **Protected Routes** - Secure dashboard and profile pages
 
 ---
- Demo:https://apnisec-xnjq.vercel.app/
+ Demo:https://apnisec-six.vercel.app/
 ---
 ##  Tech Stack
 
