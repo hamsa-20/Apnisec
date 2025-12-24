@@ -389,107 +389,201 @@
 // //   }
 // // }
 // @ts-nocheck
+// import bcrypt from 'bcryptjs'
+// import { JWTService } from './JWTService'
+// import { EmailService } from './EmailService'
+// import { UserRepository } from '../repositories/UserRepository'
+// import { ApiError } from '../errors/ApiError'
+// import { AuthValidator } from '../validators/AuthValidator'
+
+// export class AuthService {
+//   private jwtService: JWTService
+//   private emailService: EmailService
+//   private userRepository: UserRepository
+//   private validator: AuthValidator
+
+//   constructor() {
+//     this.jwtService = new JWTService()
+//     this.emailService = new EmailService()
+//     this.userRepository = new UserRepository()
+//     this.validator = new AuthValidator()
+//   }
+
+//   async register(userData: any) {
+//     // ✅ BASIC VALIDATION (NO STRICT VALIDATOR)
+//     if (!userData.email || !userData.password) {
+//       throw new ApiError('Email and password are required', 400)
+//     }
+
+//     if (userData.password.length < 6) {
+//       throw new ApiError('Password must be at least 6 characters', 400)
+//     }
+
+//     const existingUser = await this.userRepository.findByEmail(userData.email)
+//     if (existingUser) {
+//       throw new ApiError('Email already registered', 400)
+//     }
+
+//     const hashedPassword = await bcrypt.hash(userData.password, 10)
+
+//     // ✅ ONLY FIELDS THAT EXIST IN PRISMA
+//     const user = await this.userRepository.create({
+//       email: userData.email,
+//       password: hashedPassword,
+//       name: userData.name || null
+//     })
+
+//     const tokens = this.jwtService.generateTokens({
+//       userId: user.id,
+//       email: user.email,
+//       role: 'USER'
+//     })
+
+//     // ✅ NON-BLOCKING EMAIL
+//     if (user.email) {
+//       this.emailService
+//         .sendWelcomeEmail(
+//           user.email,
+//           user.name || user.email.split('@')[0]
+//         )
+//         .catch(() => {})
+//     }
+
+//     return {
+//       user: {
+//         id: user.id,
+//         email: user.email,
+//         name: user.name
+//       },
+//       tokens
+//     }
+//   }
+
+//   async login(email: string, password: string, ipAddress?: string) {
+//     await this.validator.validateLogin({ email, password })
+
+//     const user = await this.userRepository.findByEmail(email)
+//     if (!user) {
+//       throw new ApiError('Invalid credentials', 401)
+//     }
+
+//     const isValidPassword = await bcrypt.compare(password, user.password)
+//     if (!isValidPassword) {
+//       throw new ApiError('Invalid credentials', 401)
+//     }
+
+//     const tokens = this.jwtService.generateTokens({
+//       userId: user.id,
+//       email: user.email,
+//       role: 'USER'
+//     })
+
+//     return {
+//       user: {
+//         id: user.id,
+//         email: user.email,
+//         name: user.name
+//       },
+//       tokens
+//     }
+//   }
+
+//   async logout(userId: string) {
+//     await this.jwtService.invalidateUserTokens(userId)
+//     return { success: true, message: 'Logged out successfully' }
+//   }
+// }
 import bcrypt from 'bcryptjs'
+import { prisma } from '@/lib/prisma'
+
 import { JWTService } from './JWTService'
 import { EmailService } from './EmailService'
-import { UserRepository } from '../repositories/UserRepository'
 import { ApiError } from '../errors/ApiError'
-import { AuthValidator } from '../validators/AuthValidator'
 
 export class AuthService {
-  private jwtService: JWTService
-  private emailService: EmailService
-  private userRepository: UserRepository
-  private validator: AuthValidator
+  private jwt = new JWTService()
+  private email = new EmailService()
 
-  constructor() {
-    this.jwtService = new JWTService()
-    this.emailService = new EmailService()
-    this.userRepository = new UserRepository()
-    this.validator = new AuthValidator()
-  }
-
-  async register(userData: any) {
-    // ✅ BASIC VALIDATION (NO STRICT VALIDATOR)
-    if (!userData.email || !userData.password) {
-      throw new ApiError('Email and password are required', 400)
-    }
-
-    if (userData.password.length < 6) {
-      throw new ApiError('Password must be at least 6 characters', 400)
-    }
-
-    const existingUser = await this.userRepository.findByEmail(userData.email)
-    if (existingUser) {
-      throw new ApiError('Email already registered', 400)
-    }
-
-    const hashedPassword = await bcrypt.hash(userData.password, 10)
-
-    // ✅ ONLY FIELDS THAT EXIST IN PRISMA
-    const user = await this.userRepository.create({
-      email: userData.email,
-      password: hashedPassword,
-      name: userData.name || null
+  async login(email: string, password: string) {
+    const user = await prisma.user.findUnique({
+      where: { email },
     })
 
-    const tokens = this.jwtService.generateTokens({
-      userId: user.id,
-      email: user.email,
-      role: 'USER'
-    })
-
-    // ✅ NON-BLOCKING EMAIL
-    if (user.email) {
-      this.emailService
-        .sendWelcomeEmail(
-          user.email,
-          user.name || user.email.split('@')[0]
-        )
-        .catch(() => {})
-    }
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name
-      },
-      tokens
-    }
-  }
-
-  async login(email: string, password: string, ipAddress?: string) {
-    await this.validator.validateLogin({ email, password })
-
-    const user = await this.userRepository.findByEmail(email)
     if (!user) {
       throw new ApiError('Invalid credentials', 401)
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password)
-    if (!isValidPassword) {
+    const valid = await bcrypt.compare(password, user.password)
+    if (!valid) {
       throw new ApiError('Invalid credentials', 401)
     }
 
-    const tokens = this.jwtService.generateTokens({
+    const tokens = this.jwt.generateTokens({
       userId: user.id,
       email: user.email,
-      role: 'USER'
+      role: 'USER',
     })
 
     return {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name
+        name: user.name,
       },
-      tokens
+      tokens,
     }
   }
 
-  async logout(userId: string) {
-    await this.jwtService.invalidateUserTokens(userId)
-    return { success: true, message: 'Logged out successfully' }
+  async register(data: {
+    email: string
+    password: string
+    name?: string
+  }) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+    })
+
+    if (existingUser) {
+      throw new ApiError('User already exists', 400)
+    }
+
+    if (data.password.length < 6) {
+      throw new ApiError('Password must be at least 6 characters', 400)
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 10)
+
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        password: hashedPassword,
+        name: data.name || null,
+      },
+    })
+
+    const tokens = this.jwt.generateTokens({
+      userId: user.id,
+      email: user.email,
+      role: 'USER',
+    })
+
+    // ✅ NON-BLOCKING EMAIL (CRITICAL)
+    this.email
+      .sendWelcomeEmail(
+        user.email,
+        user.name || user.email.split('@')[0]
+      )
+      .catch(err => {
+        console.error('Email failed:', err)
+      })
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      tokens,
+    }
   }
 }
